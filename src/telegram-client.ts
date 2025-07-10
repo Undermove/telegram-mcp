@@ -41,21 +41,7 @@ export class TelegramClient {
 
   async connect(): Promise<void> {
     console.error("Connecting to Telegram...");
-    await this.client.start({
-      phoneNumber: async () => {
-        throw new Error("Phone number authentication not supported in MCP server mode. Please provide a session string.");
-      },
-      password: async () => {
-        throw new Error("Password authentication not supported in MCP server mode. Please provide a session string.");
-      },
-      phoneCode: async () => {
-        throw new Error("Phone code authentication not supported in MCP server mode. Please provide a session string.");
-      },
-      onError: (err: any) => {
-        console.error("Telegram authentication error:", err);
-        throw err;
-      },
-    });
+    await this.client.connect();
     console.error("Connected to Telegram successfully");
   }
 
@@ -120,7 +106,8 @@ export class TelegramClient {
       const messageInfos: MessageInfo[] = [];
       
       for (const message of messages) {
-        if (!message || message.className !== "Message") {
+        const msg = message as any;
+        if (!msg || msg.className !== "Message") {
           continue;
         }
         
@@ -128,10 +115,10 @@ export class TelegramClient {
         let fromFirstName: string | undefined;
         let fromLastName: string | undefined;
         
-        if (message.fromId) {
+        if (msg.fromId) {
           try {
-            const sender = await this.client.getEntity(message.fromId);
-            if (sender.className === "User") {
+            const sender = await this.client.getEntity(msg.fromId) as any;
+            if (sender?.className === "User") {
               fromUsername = sender.username;
               fromFirstName = sender.firstName;
               fromLastName = sender.lastName;
@@ -142,14 +129,14 @@ export class TelegramClient {
         }
         
         const messageInfo: MessageInfo = {
-          id: message.id,
-          text: message.message || "",
-          date: new Date(message.date * 1000),
-          fromId: message.fromId?.toString(),
+          id: msg.id,
+          text: msg.message || "",
+          date: new Date(msg.date * 1000),
+          fromId: msg.fromId?.toString(),
           fromUsername,
           fromFirstName,
           fromLastName,
-          replyToMsgId: message.replyTo?.replyToMsgId,
+          replyToMsgId: msg.replyTo?.replyToMsgId,
         };
         
         messageInfos.push(messageInfo);
@@ -168,7 +155,7 @@ export class TelegramClient {
     
     try {
       const entity = await this.client.getEntity(chatId);
-      const result = await this.client.sendMessage(entity, { message });
+      const result = await this.client.sendMessage(entity, { message }) as any;
       
       if (!result || result.className !== "Message") {
         throw new Error("Failed to send message");

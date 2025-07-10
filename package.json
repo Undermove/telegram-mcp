@@ -8,7 +8,9 @@
     "start": "node dist/index.js",
     "dev": "tsx src/index.ts",
     "test": "jest",
-    "test-client": "tsx src/test.ts"
+    "test-client": "tsx src/test.ts",
+    "session": "node session-helper.js",
+    "example": "node example.js"
   },
   "keywords": ["mcp", "telegram", "server"],
   "author": "",
