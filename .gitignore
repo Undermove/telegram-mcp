@@ -92,3 +92,6 @@ jspm_packages/
 
 # Telegram session files
 *.session
+
+# Zencoder files
+.zencoder/
