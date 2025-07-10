@@ -39,6 +39,22 @@ async function initializeTelegramClient(apiId: string, apiHash: string, sessionS
   return telegramClient;
 }
 
+// Auto-initialize Telegram client if environment variables are present
+async function autoInitializeTelegramClient() {
+  const apiId = process.env.TELEGRAM_API_ID;
+  const apiHash = process.env.TELEGRAM_API_HASH;
+  const sessionString = process.env.TELEGRAM_SESSION_STRING;
+  
+  if (apiId && apiHash) {
+    try {
+      await initializeTelegramClient(apiId, apiHash, sessionString);
+      console.log("Telegram client auto-initialized from environment variables");
+    } catch (error) {
+      console.warn("Failed to auto-initialize Telegram client:", error instanceof Error ? error.message : String(error));
+    }
+  }
+}
+
 // List available tools
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
@@ -288,9 +304,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 });
 
 async function runServer() {
+  // Auto-initialize Telegram client if environment variables are present
+  await autoInitializeTelegramClient();
+  
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("Telegram MCP server running on stdio");
+  console.log("Telegram MCP server running on stdio");
 }
 
 runServer().catch((error) => {
