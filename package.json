@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "MCP server for Telegram integration",
   "main": "dist/index.js",
+  "type": "module",
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
@@ -10,7 +11,8 @@
     "test": "jest",
     "test-client": "tsx src/test.ts",
     "session": "node session-helper.js",
-    "example": "node example.js"
+    "example": "node example.js",
+    "test-readonly": "node test-readonly.js"
   },
   "keywords": ["mcp", "telegram", "server"],
   "author": "",

@@ -14,7 +14,7 @@ import { TelegramClient } from "./telegram-client.js";
 const server = new Server(
   {
     name: "telegram-mcp-server",
-    version: "1.0.0",
+    version: "0.1.0",
   },
   {
     capabilities: {
@@ -25,6 +25,9 @@ const server = new Server(
 
 // Telegram client instance
 let telegramClient: TelegramClient | null = null;
+
+// Check if server is running in readonly mode
+const isReadonlyMode = process.env.TELEGRAM_READONLY_MODE === 'true';
 
 // Initialize Telegram client
 async function initializeTelegramClient(apiId: string, apiHash: string, sessionString?: string) {
@@ -48,7 +51,7 @@ async function autoInitializeTelegramClient() {
   if (apiId && apiHash) {
     try {
       await initializeTelegramClient(apiId, apiHash, sessionString);
-      console.log("Telegram client auto-initialized from environment variables");
+      console.log(`Telegram client auto-initialized from environment variables (${isReadonlyMode ? 'readonly' : 'read-write'} mode)`);
     } catch (error) {
       console.warn("Failed to auto-initialize Telegram client:", error instanceof Error ? error.message : String(error));
     }
@@ -57,85 +60,89 @@ async function autoInitializeTelegramClient() {
 
 // List available tools
 server.setRequestHandler(ListToolsRequestSchema, async () => {
-  return {
-    tools: [
-      {
-        name: "telegram_connect",
-        description: "Connect to Telegram using API credentials",
-        inputSchema: {
-          type: "object",
-          properties: {
-            apiId: {
-              type: "string",
-              description: "Telegram API ID",
-            },
-            apiHash: {
-              type: "string", 
-              description: "Telegram API Hash",
-            },
-            sessionString: {
-              type: "string",
-              description: "Optional session string for authentication",
-            },
+  const tools: any[] = [
+    {
+      name: "telegram_connect",
+      description: "Connect to Telegram using API credentials",
+      inputSchema: {
+        type: "object",
+        properties: {
+          apiId: {
+            type: "string",
+            description: "Telegram API ID",
           },
-          required: ["apiId", "apiHash"],
+          apiHash: {
+            type: "string", 
+            description: "Telegram API Hash",
+          },
+          sessionString: {
+            type: "string",
+            description: "Optional session string for authentication",
+          },
         },
+        required: ["apiId", "apiHash"],
       },
-      {
-        name: "telegram_get_chats",
-        description: "Get list of chats from Telegram",
-        inputSchema: {
-          type: "object",
-          properties: {
-            limit: {
-              type: "number",
-              description: "Maximum number of chats to retrieve (default: 50)",
-            },
+    },
+    {
+      name: "telegram_get_chats",
+      description: "Get list of chats from Telegram",
+      inputSchema: {
+        type: "object",
+        properties: {
+          limit: {
+            type: "number",
+            description: "Maximum number of chats to retrieve (default: 50)",
           },
         },
       },
-      {
-        name: "telegram_get_chat_history",
-        description: "Get message history from a specific chat",
-        inputSchema: {
-          type: "object",
-          properties: {
-            chatId: {
-              type: "string",
-              description: "Chat ID or username",
-            },
-            limit: {
-              type: "number", 
-              description: "Maximum number of messages to retrieve (default: 50)",
-            },
-            offsetId: {
-              type: "number",
-              description: "Message ID to start from (for pagination)",
-            },
+    },
+    {
+      name: "telegram_get_chat_history",
+      description: "Get message history from a specific chat",
+      inputSchema: {
+        type: "object",
+        properties: {
+          chatId: {
+            type: "string",
+            description: "Chat ID or username",
           },
-          required: ["chatId"],
-        },
-      },
-      {
-        name: "telegram_send_message",
-        description: "Send a message to a specific chat",
-        inputSchema: {
-          type: "object",
-          properties: {
-            chatId: {
-              type: "string",
-              description: "Chat ID or username",
-            },
-            message: {
-              type: "string",
-              description: "Message text to send",
-            },
+          limit: {
+            type: "number", 
+            description: "Maximum number of messages to retrieve (default: 50)",
           },
-          required: ["chatId", "message"],
+          offsetId: {
+            type: "number",
+            description: "Message ID to start from (for pagination)",
+          },
         },
+        required: ["chatId"],
       },
-    ],
-  };
+    },
+  ];
+
+  // Add send message tool only if not in readonly mode
+  if (!isReadonlyMode) {
+    tools.push({
+      name: "telegram_send_message",
+      description: "Send a message to a specific chat",
+      inputSchema: {
+        type: "object",
+        properties: {
+          chatId: {
+            type: "string",
+            description: "Chat ID or username",
+          },
+          message: {
+            type: "string",
+            description: "Message text to send",
+          },
+        },
+        required: ["chatId", "message"],
+      },
+    });
+  }
+
+  return { tools };
 });
 
 // Handle tool calls
@@ -250,6 +257,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case "telegram_send_message": {
+        if (isReadonlyMode) {
+          throw new McpError(
+            ErrorCode.InvalidRequest,
+            "Message sending is not available in readonly mode."
+          );
+        }
+
         if (!telegramClient) {
           throw new McpError(
             ErrorCode.InvalidRequest,
@@ -309,7 +323,7 @@ async function runServer() {
   
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.log("Telegram MCP server running on stdio");
+  console.log(`Telegram MCP server running on stdio (${isReadonlyMode ? 'readonly' : 'read-write'} mode)`);
 }
 
 runServer().catch((error) => {
