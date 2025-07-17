@@ -14,7 +14,9 @@ example.js
 # Test files
 **/*.test.*
 __tests__/
+tests/
 coverage/
+jest.config.js
 
 # Development dependencies
 node_modules/
