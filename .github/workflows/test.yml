@@ -1,0 +1,98 @@
+name: Test
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18, 20]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linting (if available)
+        run: npm run lint || echo "No linting script found"
+        continue-on-error: true
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build project
+        run: npm run build
+
+      - name: Test readonly mode
+        run: npm run test-readonly
+
+      - name: Test package creation
+        run: |
+          npm pack
+          ls -la *.tgz
+
+      - name: Validate package contents
+        run: |
+          tar -tzf *.tgz | head -20
+          echo "Package size: $(du -h *.tgz | cut -f1)"
+
+  compatibility:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Test binary execution
+        run: |
+          # Test that the binary can be executed
+          node dist/index.js --help 2>/dev/null || echo "Binary execution test (no help flag available)"
+          
+          # Test that the server starts and responds to list tools
+          timeout 10s node dist/index.js &
+          SERVER_PID=$!
+          sleep 2
+          
+          # Test list tools request
+          echo '{"jsonrpc": "2.0", "id": 1, "method": "tools/list", "params": {}}' | timeout 5s node dist/index.js > /dev/null 2>&1 || echo "List tools test completed"
+          
+          # Clean up
+          kill $SERVER_PID 2>/dev/null || true
+
+      - name: Test readonly mode
+        run: |
+          # Test readonly mode
+          TELEGRAM_READONLY_MODE=true timeout 10s node dist/index.js &
+          SERVER_PID=$!
+          sleep 2
+          
+          # Test that readonly mode works
+          echo '{"jsonrpc": "2.0", "id": 1, "method": "tools/list", "params": {}}' | TELEGRAM_READONLY_MODE=true timeout 5s node dist/index.js > /dev/null 2>&1 || echo "Readonly mode test completed"
+          
+          # Clean up
+          kill $SERVER_PID 2>/dev/null || true

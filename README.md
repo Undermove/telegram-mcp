@@ -1,4 +1,4 @@
-# Telegram MCP Server
+# Telegram MCP Local Server
 
 Простой MCP (Model Context Protocol) сервер для работы с Telegram. Позволяет получать список чатов, историю сообщений и отправлять сообщения через Telegram API.
 
@@ -13,7 +13,26 @@
 
 ## Установка
 
+### Через npx (рекомендуется)
+
+Вы можете запустить сервер напрямую без установки:
+
 ```bash
+npx telegram-mcp-local-server
+```
+
+Или установить глобально:
+
+```bash
+npm install -g telegram-mcp-local-server
+telegram-mcp-local-server
+```
+
+### Для разработки
+
+```bash
+git clone <repository-url>
+cd telegram-mcp-server
 npm install
 npm run build
 ```
@@ -30,12 +49,15 @@ npm run build
 ### Запуск сервера
 
 ```bash
+# Через npx
+npx telegram-mcp-local-server
+
+# Или если установлен глобально
+telegram-mcp-local-server
+
+# Для разработки
 npm start
-```
-
-или для разработки:
-
-```bash
+# или
 npm run dev
 ```
 
@@ -44,12 +66,15 @@ npm run dev
 Для безопасной работы сервер можно запустить в режиме "только чтение", в котором доступны только функции чтения (получение чатов и истории сообщений), а отправка сообщений заблокирована.
 
 ```bash
+# Через npx
+TELEGRAM_READONLY_MODE=true npx telegram-mcp-local-server
+
+# Или если установлен глобально  
+TELEGRAM_READONLY_MODE=true telegram-mcp-local-server
+
+# Для разработки
 TELEGRAM_READONLY_MODE=true npm start
-```
-
-или для разработки:
-
-```bash
+# или
 TELEGRAM_READONLY_MODE=true npm run dev
 ```
 
@@ -173,6 +198,69 @@ npm run test-client
 
 Интерактивный тест, который поможет проверить подключение и основные функции.
 
+## Настройка MCP клиента
+
+Для использования с MCP-совместимыми клиентами (например, Claude Desktop), добавьте в конфигурацию:
+
+### Через npx (рекомендуется)
+
+```json
+{
+  "mcpServers": {
+    "telegram": {
+      "command": "npx",
+      "args": ["telegram-mcp-local-server"],
+      "env": {
+        "TELEGRAM_API_ID": "your_api_id",
+        "TELEGRAM_API_HASH": "your_api_hash",
+        "TELEGRAM_SESSION_STRING": "your_session_string",
+        "TELEGRAM_READONLY_MODE": "true"
+      }
+    }
+  }
+}
+```
+
+### Через глобальную установку
+
+```json
+{
+  "mcpServers": {
+    "telegram": {
+      "command": "telegram-mcp-local-server",
+      "env": {
+        "TELEGRAM_API_ID": "your_api_id",
+        "TELEGRAM_API_HASH": "your_api_hash", 
+        "TELEGRAM_SESSION_STRING": "your_session_string",
+        "TELEGRAM_READONLY_MODE": "true"
+      }
+    }
+  }
+}
+```
+
+### Локальная установка
+
+```json
+{
+  "mcpServers": {
+    "telegram": {
+      "command": "node",
+      "args": ["dist/index.js"],
+      "cwd": "/path/to/telegram-mcp-server",
+      "env": {
+        "TELEGRAM_API_ID": "your_api_id",
+        "TELEGRAM_API_HASH": "your_api_hash",
+        "TELEGRAM_SESSION_STRING": "your_session_string",
+        "TELEGRAM_READONLY_MODE": "true"
+      }
+    }
+  }
+}
+```
+
+**Примечание**: Установите `TELEGRAM_READONLY_MODE=true` для безопасного режима только чтения.
+
 ## Структура проекта
 
 ```
@@ -186,6 +274,24 @@ src/
 - `@modelcontextprotocol/sdk` - SDK для MCP
 - `telegram` - Библиотека для работы с Telegram API
 - `zod` - Валидация параметров
+
+## Разработка
+
+Для разработки и внесения изменений см. [CONTRIBUTING.md](CONTRIBUTING.md).
+
+### Быстрый старт для разработчиков
+
+```bash
+git clone <repository-url>
+cd telegram-mcp-server
+npm install
+npm run build
+npm test
+```
+
+### Автоматическая публикация
+
+Проект использует GitHub Actions для автоматической публикации в npm при изменениях в main ветке.
 
 ## Лицензия
 
