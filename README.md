@@ -1,208 +1,53 @@
 # Telegram MCP Local Server
 
-Простой MCP (Model Context Protocol) сервер для работы с Telegram. Позволяет получать список чатов, историю сообщений и отправлять сообщения через Telegram API.
+[![npm version](https://badge.fury.io/js/telegram-mcp-local-server.svg)](https://badge.fury.io/js/telegram-mcp-local-server)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Downloads](https://img.shields.io/npm/dm/telegram-mcp-local-server.svg)](https://www.npmjs.com/package/telegram-mcp-local-server)
 
-## Возможности
+A secure Model Context Protocol (MCP) server for Telegram integration. Allows AI agents to interact with Telegram API locally on your machine.
 
-- 🔌 Подключение к Telegram через API
-- 💬 Получение списка чатов
-- 📜 Получение истории сообщений из чатов
-- 📤 Отправка сообщений
-- 🔄 Работа через stdio (для интеграции с MCP-совместимыми клиентами)
-- 🔒 Режим "только чтение" (readonly) для безопасной работы
+## How It Works & Security
 
-## Установка
+This server runs **entirely on your local machine** and acts as a bridge between AI agents (like Cursor, Claude, etc.) and Telegram's API. 
 
-### Через npx (рекомендуется)
+🔒 **Your data stays private:**
+- All communication happens locally between your AI agent and your machine
+- No data is sent to third-party servers
+- Your Telegram credentials remain on your device
+- Session data is stored locally and never transmitted
 
-Вы можете запустить сервер напрямую без установки:
+🛡️ **Built-in safety features:**
+- Readonly mode by default (prevents accidental message sending)
+- Local session management
+- Direct API communication with Telegram only
 
-```bash
-npx telegram-mcp-local-server
-```
+## Getting Credentials
 
-Или установить глобально:
+### Step 1: Get Telegram API Keys
 
-```bash
-npm install -g telegram-mcp-local-server
-telegram-mcp-local-server
-```
+1. Go to https://my.telegram.org/
+2. Log in with your Telegram account
+3. Navigate to "API development tools"
+4. Create a new application to get your `api_id` and `api_hash`
 
-### Для разработки
+### Step 2: Generate Session String
 
-```bash
-git clone <repository-url>
-cd telegram-mcp-server
-npm install
-npm run build
-```
-
-## Получение Telegram API ключей
-
-1. Перейдите на https://my.telegram.org/
-2. Войдите в свою учетную запись Telegram
-3. Перейдите в раздел "API development tools"
-4. Создайте новое приложение и получите `api_id` и `api_hash`
-
-## Использование
-
-### Запуск сервера
+Use the built-in session helper without downloading the repository:
 
 ```bash
-# Через npx
-npx telegram-mcp-local-server
-
-# Или если установлен глобально
-telegram-mcp-local-server
-
-# Для разработки
-npm start
-# или
-npm run dev
+npx telegram-mcp-local-server --session
 ```
 
-### Режим "только чтение" (Readonly Mode)
+Follow the prompts:
+1. Enter your API ID and Hash
+2. Enter your phone number
+3. Enter the verification code from SMS
+4. Enter your 2FA password if enabled
+5. Copy the generated session string
 
-Для безопасной работы сервер можно запустить в режиме "только чтение", в котором доступны только функции чтения (получение чатов и истории сообщений), а отправка сообщений заблокирована.
+## Configuration for Cursor
 
-```bash
-# Через npx
-TELEGRAM_READONLY_MODE=true npx telegram-mcp-local-server
-
-# Или если установлен глобально  
-TELEGRAM_READONLY_MODE=true telegram-mcp-local-server
-
-# Для разработки
-TELEGRAM_READONLY_MODE=true npm start
-# или
-TELEGRAM_READONLY_MODE=true npm run dev
-```
-
-В readonly режиме доступны только следующие инструменты:
-- `telegram_connect` - подключение к Telegram
-- `telegram_get_chats` - получение списка чатов  
-- `telegram_get_chat_history` - получение истории сообщений
-
-Инструмент `telegram_send_message` недоступен в readonly режиме.
-
-### Доступные инструменты
-
-#### `telegram_connect`
-Подключение к Telegram с использованием API ключей.
-
-Параметры:
-- `apiId` (обязательно): Telegram API ID
-- `apiHash` (обязательно): Telegram API Hash
-- `sessionString` (опционально): Строка сессии для авторизации
-
-#### `telegram_get_chats`
-Получение списка чатов.
-
-Параметры:
-- `limit` (опционально): Максимальное количество чатов (по умолчанию: 50)
-
-#### `telegram_get_chat_history`
-Получение истории сообщений из конкретного чата.
-
-Параметры:
-- `chatId` (обязательно): ID чата или username
-- `limit` (опционально): Максимальное количество сообщений (по умолчанию: 50)
-- `offsetId` (опционально): ID сообщения для начала (для пагинации)
-
-#### `telegram_send_message`
-Отправка сообщения в конкретный чат.
-
-Параметры:
-- `chatId` (обязательно): ID чата или username
-- `message` (обязательно): Текст сообщения
-
-## Пример использования
-
-```javascript
-// Подключение к Telegram
-{
-  "name": "telegram_connect",
-  "arguments": {
-    "apiId": "your_api_id",
-    "apiHash": "your_api_hash"
-  }
-}
-
-// Получение списка чатов
-{
-  "name": "telegram_get_chats",
-  "arguments": {
-    "limit": 20
-  }
-}
-
-// Получение истории сообщений
-{
-  "name": "telegram_get_chat_history", 
-  "arguments": {
-    "chatId": "@username",
-    "limit": 100
-  }
-}
-
-// Отправка сообщения
-{
-  "name": "telegram_send_message",
-  "arguments": {
-    "chatId": "@username",
-    "message": "Привет!"
-  }
-}
-```
-
-## Настройка аутентификации
-
-Для работы с Telegram API необходимо получить строку сессии:
-
-### Способ 1: Использование утилиты session-helper
-
-```bash
-npm run session
-```
-
-Следуйте инструкциям в интерактивном режиме:
-1. Введите API ID и Hash
-2. Введите номер телефона
-3. Введите код из SMS
-4. При необходимости введите пароль двухфакторной аутентификации
-5. Скопируйте полученную строку сессии
-
-### Способ 2: Вручную
-
-```bash
-npm run test-client
-```
-
-Эта команда запустит интерактивный тест клиента для получения сессии.
-
-## Тестирование
-
-### Тест основного функционала
-
-```bash
-npm run example
-```
-
-Эта команда покажет доступные инструменты и примеры использования.
-
-### Интерактивный тест
-
-```bash
-npm run test-client
-```
-
-Интерактивный тест, который поможет проверить подключение и основные функции.
-
-## Настройка MCP клиента
-
-Для использования с MCP-совместимыми клиентами (например, Claude Desktop), добавьте в конфигурацию:
-
-### Через npx (рекомендуется)
+Add this to your Cursor MCP configuration:
 
 ```json
 {
@@ -221,78 +66,27 @@ npm run test-client
 }
 ```
 
-### Через глобальную установку
+**Note:** Keep `TELEGRAM_READONLY_MODE=true` for safe operation. This allows reading chats and message history but prevents sending messages.
 
-```json
-{
-  "mcpServers": {
-    "telegram": {
-      "command": "telegram-mcp-local-server",
-      "env": {
-        "TELEGRAM_API_ID": "your_api_id",
-        "TELEGRAM_API_HASH": "your_api_hash", 
-        "TELEGRAM_SESSION_STRING": "your_session_string",
-        "TELEGRAM_READONLY_MODE": "true"
-      }
-    }
-  }
-}
-```
+## Available Tools
 
-### Локальная установка
+- `telegram_connect` - Connect to Telegram
+- `telegram_get_chats` - Get list of your chats
+- `telegram_get_chat_history` - Read message history from specific chats
+- `telegram_send_message` - Send messages (disabled in readonly mode)
 
-```json
-{
-  "mcpServers": {
-    "telegram": {
-      "command": "node",
-      "args": ["dist/index.js"],
-      "cwd": "/path/to/telegram-mcp-server",
-      "env": {
-        "TELEGRAM_API_ID": "your_api_id",
-        "TELEGRAM_API_HASH": "your_api_hash",
-        "TELEGRAM_SESSION_STRING": "your_session_string",
-        "TELEGRAM_READONLY_MODE": "true"
-      }
-    }
-  }
-}
-```
+## Quick Test
 
-**Примечание**: Установите `TELEGRAM_READONLY_MODE=true` для безопасного режима только чтения.
-
-## Структура проекта
-
-```
-src/
-├── index.ts          # Основной MCP сервер
-└── telegram-client.ts # Клиент для работы с Telegram API
-```
-
-## Зависимости
-
-- `@modelcontextprotocol/sdk` - SDK для MCP
-- `telegram` - Библиотека для работы с Telegram API
-- `zod` - Валидация параметров
-
-## Разработка
-
-Для разработки и внесения изменений см. [CONTRIBUTING.md](CONTRIBUTING.md).
-
-### Быстрый старт для разработчиков
+Test your setup:
 
 ```bash
-git clone <repository-url>
-cd telegram-mcp-server
-npm install
-npm run build
-npm test
+# Test connection and basic functionality
+npx telegram-mcp-local-server --help
+
+# Generate new session if needed
+npx telegram-mcp-local-server --session
 ```
 
-### Автоматическая публикация
+## License
 
-Проект использует GitHub Actions для автоматической публикации в npm при изменениях в main ветке.
-
-## Лицензия
-
-MIT
+MIT - Your data, your control.
