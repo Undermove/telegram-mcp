@@ -19,6 +19,8 @@ async function main(): Promise<void> {
   console.log('=== Telegram Session Helper ===\n');
   console.log('This utility will help you generate a session string for the MCP server.');
   console.log('You will need API keys from https://my.telegram.org/\n');
+  console.log('Open https://my.telegram.org/\n');
+  console.log('Navigate "API development tools" section\n');
 
   try {
     const apiId = await question('Enter your API ID: ');
