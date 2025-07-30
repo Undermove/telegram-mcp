@@ -21,9 +21,9 @@
     "session": "tsx src/session-helper.ts",
     "test-readonly": "TELEGRAM_READONLY_MODE=true npm test",
     "prepublishOnly": "npm run build",
-    "version:patch": "node scripts/bump-version.js patch",
-    "version:minor": "node scripts/bump-version.js minor",
-    "version:major": "node scripts/bump-version.js major"
+    "version:patch": "tsx scripts/bump-version.ts patch",
+    "version:minor": "tsx scripts/bump-version.ts minor",
+    "version:major": "tsx scripts/bump-version.ts major"
   },
   "keywords": ["mcp", "telegram", "server", "model-context-protocol", "ai", "llm", "chat", "messaging"],
   "author": "Your Name <your.email@example.com>",
