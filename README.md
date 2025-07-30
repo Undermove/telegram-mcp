@@ -23,16 +23,11 @@ This server runs **entirely on your local machine** and acts as a bridge between
 
 ## Getting Credentials
 
-### Step 1: Get Telegram API Keys
-
-1. Go to https://my.telegram.org/
-2. Log in with your Telegram account
-3. Navigate to "API development tools"
-4. Create a new application to get your `api_id` and `api_hash`
-
-### Step 2: Generate Session String
+### Option 1: Use configuration tool
 
 Use the built-in session helper without downloading the repository:
+
+Type in console:
 
 ```bash
 npx telegram-mcp-local-server --session
@@ -43,11 +38,9 @@ Follow the prompts:
 2. Enter your phone number
 3. Enter the verification code from SMS
 4. Enter your 2FA password if enabled
-5. Copy the generated session string
+5. Copy the generated JSON to your configs
 
-## Configuration for Cursor
-
-Add this to your Cursor MCP configuration:
+#### Generated configuration example:
 
 ```json
 {
@@ -66,26 +59,21 @@ Add this to your Cursor MCP configuration:
 }
 ```
 
+### Option 2: Generate Session String manually and fill configuration
+
+1. Go to https://my.telegram.org/
+2. Log in with your Telegram account
+3. Navigate to "API development tools"
+4. Create a new application to get your `api_id` and `api_hash`
+
 **Note:** Keep `TELEGRAM_READONLY_MODE=true` for safe operation. This allows reading chats and message history but prevents sending messages.
 
 ## Available Tools
 
 - `telegram_connect` - Connect to Telegram
-- `telegram_get_chats` - Get list of your chats
+- `telegram_get_chats` - Get a list of your chats
 - `telegram_get_chat_history` - Read message history from specific chats
 - `telegram_send_message` - Send messages (disabled in readonly mode)
-
-## Quick Test
-
-Test your setup:
-
-```bash
-# Test connection and basic functionality
-npx telegram-mcp-local-server --help
-
-# Generate new session if needed
-npx telegram-mcp-local-server --session
-```
 
 ## License
 

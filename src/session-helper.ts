@@ -36,20 +36,47 @@ async function main(): Promise<void> {
     await client.start({
       phoneNumber: async () => await question('Enter your phone number (with country code): '),
       password: async () => await question('Enter your 2FA password: '),
-      phoneCode: async () => await question('Enter the verification code from SMS: '),
+      phoneCode: async () => await question('Enter the verification code from SMS or Telegram: '),
       onError: (err: Error) => console.error('Error:', err),
     });
 
     console.log('\n✅ Successfully connected to Telegram!');
     
     const sessionString = client.session.save();
-    console.log('\n🔑 Your session string:');
-    console.log(`"${sessionString}"`);
     
-    console.log('\n📝 Use this session string in the TELEGRAM_SESSION_STRING environment variable');
-    console.log('⚠️  Keep this string secure and do not share it with others!');
-    console.log('\n📋 Example usage:');
-    console.log('TELEGRAM_SESSION_STRING="' + sessionString + '" npx telegram-mcp-local-server');
+    console.log('\n🔑 Session string generated successfully!');
+    console.log('⚠️  Keep this configuration secure and do not share it with others!');
+
+    console.log('\n📝 Alternative: Environment variables setup');
+    console.log(`TELEGRAM_API_ID="${apiId}"`);
+    console.log(`TELEGRAM_API_HASH="${apiHash}"`);
+    console.log(`TELEGRAM_SESSION_STRING="${sessionString}"`);
+    
+    // Generate MCP configuration JSON
+    const mcpConfig = {
+      mcpServers: {
+        telegram: {
+          command: "npx",
+          args: ["telegram-mcp-local-server"],
+          env: {
+            TELEGRAM_API_ID: apiId,
+            TELEGRAM_API_HASH: apiHash,
+            TELEGRAM_SESSION_STRING: sessionString,
+            TELEGRAM_READONLY_MODE: true
+          }
+        }
+      }
+    };
+    
+    console.log('\n📋 Copy this JSON configuration for your MCP client:');
+    console.log('=' .repeat(60));
+    console.log(JSON.stringify(mcpConfig, null, 2));
+    console.log('=' .repeat(60));
+    
+    console.log('\n💡 Usage instructions:');
+    console.log('1. Copy the JSON configuration above to your MCP client settings');
+    console.log('2. Or set the environment variables and run: npx telegram-mcp-local-server');
+    console.log('3. The server supports readonly mode with: TELEGRAM_READONLY_MODE=true');
 
     await client.disconnect();
     
