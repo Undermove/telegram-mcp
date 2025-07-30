@@ -48,6 +48,13 @@ jobs:
         run: |
           tar -tzf *.tgz | head -20
           echo "Package size: $(du -h *.tgz | cut -f1)"
+          
+      - name: Verify tests are in correct location
+        run: |
+          echo "Tests found in tests/ directory:"
+          ls -la tests/
+          echo "Test files contain:"
+          grep -l "describe\|test\|it" tests/* || echo "No test patterns found"
 
   compatibility:
     runs-on: ubuntu-latest
@@ -84,9 +91,9 @@ jobs:
           # Clean up
           kill $SERVER_PID 2>/dev/null || true
 
-      - name: Test readonly mode
+      - name: Test readonly mode functionality
         run: |
-          # Test readonly mode
+          # Test readonly mode environment variable functionality
           TELEGRAM_READONLY_MODE=true timeout 10s node dist/index.js &
           SERVER_PID=$!
           sleep 2
@@ -96,3 +103,6 @@ jobs:
           
           # Clean up
           kill $SERVER_PID 2>/dev/null || true
+          
+      - name: Run unit tests to verify functionality
+        run: npm test
