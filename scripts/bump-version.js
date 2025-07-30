@@ -34,9 +34,9 @@ try {
   // Update README.md if it contains version references
   try {
     let readme = readFileSync('README.md', 'utf8');
-    const versionPattern = /telegram-mcp-server@[\d.]+/g;
+    const versionPattern = /telegram-mcp-local-server@[\d.]+/g;
     if (versionPattern.test(readme)) {
-      readme = readme.replace(versionPattern, `telegram-mcp-server@${newVersion}`);
+      readme = readme.replace(versionPattern, `telegram-mcp-local-server@${newVersion}`);
       writeFileSync('README.md', readme);
       console.log('Updated version references in README.md');
     }

@@ -10,11 +10,68 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
 import { TelegramClient } from "./telegram-client.js";
+import sessionHelper from "./session-helper.js";
+import { fileURLToPath } from "url";
+import { readFileSync } from "fs";
+import { dirname, join } from "path";
+
+// Check for --session flag
+if (process.argv.includes('--session')) {
+  console.log('Starting Telegram session helper...\n');
+  sessionHelper().then(() => {
+    process.exit(0);
+  }).catch((error) => {
+    console.error('Error running session helper:', error);
+    process.exit(1);
+  });
+}
+
+// Check for --help flag
+if (process.argv.includes('--help') || process.argv.includes('-h')) {
+  console.log(`
+Telegram MCP Local Server
+
+Usage: telegram-mcp-local-server [options]
+
+Options:
+  --session     Generate a new Telegram session string
+  --version     Show version information
+  --help, -h    Show this help message
+
+Environment Variables:
+  TELEGRAM_API_ID           Your Telegram API ID
+  TELEGRAM_API_HASH         Your Telegram API Hash
+  TELEGRAM_SESSION_STRING   Your Telegram session string
+  TELEGRAM_READONLY_MODE    Set to 'true' for readonly mode
+
+Examples:
+  telegram-mcp-local-server
+  telegram-mcp-local-server --session
+  TELEGRAM_READONLY_MODE=true telegram-mcp-local-server
+
+For more information, visit: https://github.com/yourusername/telegram-mcp-local-server
+`);
+  process.exit(0);
+}
+
+// Check for --version flag
+if (process.argv.includes('--version')) {
+  try {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
+    const packagePath = join(__dirname, '..', 'package.json');
+    const packageJson = JSON.parse(readFileSync(packagePath, 'utf8'));
+    console.log(packageJson.version);
+  } catch (error) {
+    console.log('Version information not available');
+  }
+  process.exit(0);
+}
 
 const server = new Server(
   {
-    name: "telegram-mcp-server",
-    version: "0.1.0",
+    name: "telegram-mcp-local-server",
+    version: "1.0.2",
   },
   {
     capabilities: {
