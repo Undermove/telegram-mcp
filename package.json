@@ -18,6 +18,7 @@
     "dev": "tsx src/index.ts",
     "test": "jest",
     "test-client": "tsx src/test.ts",
+    "test-channels": "tsx src/test-channels.ts",
     "session": "tsx src/session-helper.ts",
     "test-readonly": "TELEGRAM_READONLY_MODE=true npm test",
     "prepublishOnly": "npm run build",
