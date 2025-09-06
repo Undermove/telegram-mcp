@@ -131,7 +131,7 @@ export class TelegramClient {
               fromLastName = sender.lastName;
             }
           } catch (error) {
-            console.error("Error getting sender info:", error);
+            // console.error("Error getting sender info:", error);
           }
         }
         
