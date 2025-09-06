@@ -66,7 +66,7 @@ if (process.argv.includes('--version')) {
 const server = new Server(
   {
     name: "telegram-mcp-local-server",
-    version: "1.0.5",
+    version: "1.0.7",
   },
   {
     capabilities: {

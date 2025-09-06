@@ -47,13 +47,13 @@ export class TelegramClient {
   }
 
   async connect(): Promise<void> {
-    console.error("Connecting to Telegram...");
+    //console.error("Connecting to Telegram...");
     await this.client.connect();
-    console.error("Connected to Telegram successfully");
+    //console.error("Connected to Telegram successfully");
   }
 
   async getChats(limit: number = 50): Promise<ChatInfo[]> {
-    console.error(`Fetching ${limit} chats...`);
+    //console.error(`Fetching ${limit} chats...`);
     
     const dialogs = await this.client.getDialogs({ limit });
     
@@ -95,12 +95,12 @@ export class TelegramClient {
       chats.push(chatInfo);
     }
     
-    console.error(`Fetched ${chats.length} chats`);
+    //console.error(`Fetched ${chats.length} chats`);
     return chats;
   }
 
   async getChatHistory(chatId: string, limit: number = 50, offsetId?: number): Promise<MessageInfo[]> {
-    console.error(`Fetching ${limit} messages from chat ${chatId}...`);
+    //console.error(`Fetching ${limit} messages from chat ${chatId}...`);
     
     try {
       const entity = await this.client.getEntity(chatId);
@@ -149,16 +149,16 @@ export class TelegramClient {
         messageInfos.push(messageInfo);
       }
       
-      console.error(`Fetched ${messageInfos.length} messages`);
+      // console.error(`Fetched ${messageInfos.length} messages`);
       return messageInfos;
     } catch (error) {
-      console.error(`Error fetching chat history for ${chatId}:`, error);
+      // console.error(`Error fetching chat history for ${chatId}:`, error);
       throw error;
     }
   }
 
   async sendMessage(chatId: string, message: string): Promise<MessageInfo> {
-    console.error(`Sending message to chat ${chatId}...`);
+    // console.error(`Sending message to chat ${chatId}...`);
     
     try {
       const entity = await this.client.getEntity(chatId);
@@ -175,16 +175,16 @@ export class TelegramClient {
         fromId: result.fromId?.toString(),
       };
       
-      console.error("Message sent successfully");
+      // console.error("Message sent successfully");
       return messageInfo;
     } catch (error) {
-      console.error(`Error sending message to ${chatId}:`, error);
+      // console.error(`Error sending message to ${chatId}:`, error);
       throw error;
     }
   }
 
   async getFolders(): Promise<FolderInfo[]> {
-    console.error("Fetching dialog folders...");
+    // console.error("Fetching dialog folders...");
     try {
       const filters = await (this.client as any).invoke(new Api.messages.GetDialogFilters());
       const folders: FolderInfo[] = [];
@@ -199,16 +199,16 @@ export class TelegramClient {
         // Skip DialogFilterDefault and other types
       }
 
-      console.error(`Fetched ${folders.length} folders`);
+      // console.error(`Fetched ${folders.length} folders`);
       return folders;
     } catch (error) {
-      console.error("Error fetching dialog folders:", error);
+      // console.error("Error fetching dialog folders:", error);
       throw error;
     }
   }
 
   async getChannelsFromFolder(folderId: number, limit: number = 50): Promise<ChatInfo[]> {
-    console.error(`Fetching up to ${limit} channels from folder ${folderId}...`);
+    // console.error(`Fetching up to ${limit} channels from folder ${folderId}...`);
     try {
       const filters = await (this.client as any).invoke(new Api.messages.GetDialogFilters());
       let targetFilter: any | undefined;
@@ -290,17 +290,17 @@ export class TelegramClient {
         if (channels.length >= limit) break;
       }
 
-      console.error(`Fetched ${channels.length} channels from folder ${folderId}`);
+      // console.error(`Fetched ${channels.length} channels from folder ${folderId}`);
       return channels;
     } catch (error) {
-      console.error(`Error fetching channels from folder ${folderId}:`, error);
+      // console.error(`Error fetching channels from folder ${folderId}:`, error);
       throw error;
     }
   }
 
   async disconnect(): Promise<void> {
-    console.error("Disconnecting from Telegram...");
+    // console.error("Disconnecting from Telegram...");
     await this.client.disconnect();
-    console.error("Disconnected from Telegram");
+    // console.error("Disconnected from Telegram");
   }
 }
