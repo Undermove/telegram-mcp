@@ -1,5 +1,6 @@
 import { TelegramClient as TgClient } from "telegram";
 import { StringSession } from "telegram/sessions/index.js";
+import { Api } from "telegram";
 
 export interface TelegramConfig {
   apiId: number;
@@ -24,6 +25,12 @@ export interface MessageInfo {
   fromFirstName?: string;
   fromLastName?: string;
   replyToMsgId?: number;
+}
+
+export interface FolderInfo {
+  id: number;
+  title: string;
+  emoticon?: string;
 }
 
 export class TelegramClient {
@@ -172,6 +179,121 @@ export class TelegramClient {
       return messageInfo;
     } catch (error) {
       console.error(`Error sending message to ${chatId}:`, error);
+      throw error;
+    }
+  }
+
+  async getFolders(): Promise<FolderInfo[]> {
+    console.error("Fetching dialog folders...");
+    try {
+      const filters = await (this.client as any).invoke(new Api.messages.GetDialogFilters());
+      const folders: FolderInfo[] = [];
+
+      for (const f of filters as any[]) {
+        if (f && (f instanceof Api.DialogFilter)) {
+          const titleVal = typeof (f as any).title === 'string'
+            ? (f as any).title
+            : ((f as any).title?.text ?? '');
+          folders.push({ id: Number(f.id), title: String(titleVal), emoticon: (f as any).emoticon });
+        }
+        // Skip DialogFilterDefault and other types
+      }
+
+      console.error(`Fetched ${folders.length} folders`);
+      return folders;
+    } catch (error) {
+      console.error("Error fetching dialog folders:", error);
+      throw error;
+    }
+  }
+
+  async getChannelsFromFolder(folderId: number, limit: number = 50): Promise<ChatInfo[]> {
+    console.error(`Fetching up to ${limit} channels from folder ${folderId}...`);
+    try {
+      const filters = await (this.client as any).invoke(new Api.messages.GetDialogFilters());
+      let targetFilter: any | undefined;
+
+      for (const f of filters as any[]) {
+        if (f && (f instanceof Api.DialogFilter) && Number((f as any).id) === Number(folderId)) {
+          targetFilter = f;
+          break;
+        }
+      }
+
+      if (!targetFilter) {
+        throw new Error(`Folder with id ${folderId} not found`);
+      }
+
+      const toPeerKey = (p: any): string | null => {
+        if (!p) return null;
+        // Handle InputPeer and Peer variants by checking known id fields
+        if (typeof (p as any).channelId !== 'undefined') return `channel:${(p as any).channelId.toString()}`;
+        if (typeof (p as any).chatId !== 'undefined') return `chat:${(p as any).chatId.toString()}`;
+        if (typeof (p as any).userId !== 'undefined') return `user:${(p as any).userId.toString()}`;
+        return null;
+      };
+
+      const included = new Set<string>();
+      const excluded = new Set<string>();
+
+      const includePeers: any[] = (targetFilter.includePeers || []) as any[];
+      const excludePeers: any[] = (targetFilter.excludePeers || []) as any[];
+      const pinnedPeers: any[] = (targetFilter.pinnedPeers || []) as any[];
+
+      for (const p of [...includePeers, ...pinnedPeers]) {
+        const k = toPeerKey(p);
+        if (k) included.add(k);
+      }
+      for (const p of excludePeers) {
+        const k = toPeerKey(p);
+        if (k) excluded.add(k);
+      }
+
+      // Get a reasonably large set of dialogs to filter from
+      const dialogs = await this.client.getDialogs({ limit: Math.max(limit * 4, 200) });
+      const channels: ChatInfo[] = [];
+
+      for (const dialog of dialogs) {
+        const entity = (dialog as any).entity as any;
+        if (!entity) continue;
+
+        const entityKey = entity.className === 'Channel'
+          ? `channel:${entity.id.toString()}`
+          : entity.className === 'Chat'
+            ? `chat:${entity.id.toString()}`
+            : entity.className === 'User'
+              ? `user:${entity.id.toString()}`
+              : null;
+        if (!entityKey) continue;
+
+        // Determine inclusion according to filter
+        let inFilter = true;
+        if (included.size > 0) {
+          inFilter = included.has(entityKey);
+        } else {
+          if (excluded.has(entityKey)) inFilter = false;
+          // Note: For simplicity, we don't evaluate category flags (contacts, groups, channels, etc.) here.
+        }
+        if (!inFilter) continue;
+
+        // Only return channels/supergroups
+        if (entity.className === 'Channel') {
+          channels.push({
+            id: entity.id.toString(),
+            title: entity.title,
+            type: entity.broadcast ? 'channel' : 'supergroup',
+            username: entity.username,
+            participantsCount: entity.participantsCount,
+          });
+        }
+
+        if (channels.length >= limit) break;
+      }
+
+      console.error(`Fetched ${channels.length} channels from folder ${folderId}`);
+      return channels;
+    } catch (error) {
+      console.error(`Error fetching channels from folder ${folderId}:`, error);
       throw error;
     }
   }

@@ -12,7 +12,7 @@ import * as path from 'path';
 interface EnvConfig {
   TELEGRAM_API_ID?: string;
   TELEGRAM_API_HASH?: string;
-  TELEGRAM_STRING_SESSION?: string;
+  TELEGRAM_SESSION_STRING?: string;
   TG_CHANNELS?: string;
 }
 
@@ -44,7 +44,7 @@ async function testChannelMessages() {
     // Load configuration from .env
     const config = loadEnvFile();
     
-    if (!config.TELEGRAM_API_ID || !config.TELEGRAM_API_HASH || !config.TELEGRAM_STRING_SESSION) {
+    if (!config.TELEGRAM_API_ID || !config.TELEGRAM_API_HASH || !config.TELEGRAM_SESSION_STRING) {
       console.error("Missing required environment variables in .env file:");
       console.error("- TELEGRAM_API_ID");
       console.error("- TELEGRAM_API_HASH"); 
@@ -65,7 +65,7 @@ async function testChannelMessages() {
     const client = new TelegramClient({
       apiId: parseInt(config.TELEGRAM_API_ID),
       apiHash: config.TELEGRAM_API_HASH,
-      sessionString: config.TELEGRAM_STRING_SESSION,
+      sessionString: config.TELEGRAM_SESSION_STRING,
     });
 
     await client.connect();
