@@ -23,29 +23,29 @@ const isSessionMode = process.argv.includes('--session');
 
 // Check for --help flag
 if (process.argv.includes('--help') || process.argv.includes('-h')) {
-  console.log(`
-Telegram MCP Local Server
-
-Usage: telegram-mcp-local-server [options]
-
-Options:
-  --session     Generate a new Telegram session string
-  --version     Show version information
-  --help, -h    Show this help message
-
-Environment Variables:
-  TELEGRAM_API_ID           Your Telegram API ID
-  TELEGRAM_API_HASH         Your Telegram API Hash
-  TELEGRAM_SESSION_STRING   Your Telegram session string
-  TELEGRAM_READONLY_MODE    Set to 'true' for readonly mode
-
-Examples:
-  telegram-mcp-local-server
-  telegram-mcp-local-server --session
-  TELEGRAM_READONLY_MODE=true telegram-mcp-local-server
-
-For more information, visit: https://github.com/yourusername/telegram-mcp-local-server
-`);
+//   console.log(`
+// Telegram MCP Local Server
+//
+// Usage: telegram-mcp-local-server [options]
+//
+// Options:
+//   --session     Generate a new Telegram session string
+//   --version     Show version information
+//   --help, -h    Show this help message
+//
+// Environment Variables:
+//   TELEGRAM_API_ID           Your Telegram API ID
+//   TELEGRAM_API_HASH         Your Telegram API Hash
+//   TELEGRAM_SESSION_STRING   Your Telegram session string
+//   TELEGRAM_READONLY_MODE    Set to 'true' for readonly mode
+//
+// Examples:
+//   telegram-mcp-local-server
+//   telegram-mcp-local-server --session
+//   TELEGRAM_READONLY_MODE=true telegram-mcp-local-server
+//
+// For more information, visit: https://github.com/yourusername/telegram-mcp-local-server
+// `);
   process.exit(0);
 }
 
@@ -56,9 +56,9 @@ if (process.argv.includes('--version')) {
     const __dirname = dirname(__filename);
     const packagePath = join(__dirname, '..', 'package.json');
     const packageJson = JSON.parse(readFileSync(packagePath, 'utf8'));
-    console.log(packageJson.version);
+    // console.log(packageJson.version);
   } catch (error) {
-    console.log('Version information not available');
+    // console.log('Version information not available');
   }
   process.exit(0);
 }
@@ -103,9 +103,9 @@ async function autoInitializeTelegramClient() {
   if (apiId && apiHash) {
     try {
       await initializeTelegramClient(apiId, apiHash, sessionString);
-      console.log(`Telegram client auto-initialized from environment variables (${isReadonlyMode ? 'readonly' : 'read-write'} mode)`);
+      // console.log(`Telegram client auto-initialized from environment variables (${isReadonlyMode ? 'readonly' : 'read-write'} mode)`);
     } catch (error) {
-      console.warn("Failed to auto-initialize Telegram client:", error instanceof Error ? error.message : String(error));
+      // console.warn("Failed to auto-initialize Telegram client:", error instanceof Error ? error.message : String(error));
     }
   }
 }
@@ -375,7 +375,7 @@ async function runServer() {
   
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.log(`Telegram MCP server running on stdio (${isReadonlyMode ? 'readonly' : 'read-write'} mode)`);
+  // console.log(`Telegram MCP server running on stdio (${isReadonlyMode ? 'readonly' : 'read-write'} mode)`);
 }
 
 if (isSessionMode) {
